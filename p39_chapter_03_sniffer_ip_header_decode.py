@@ -7,6 +7,7 @@
 # Phone:    +86-155-8287-7999
 # Date:     2016-03-06
 # Version:  v1.0.0
+# Ref0:     http://stackoverflow.com/questions/29306747/python-sniffing-from-black-hat-python-book/
 ##################################################
 
 import socket
@@ -19,8 +20,7 @@ host = "192.168.1.104"
 
 # our IP header
 class IP(Structure):
-    _fields_ = \
-    [
+    _fields_ = [
         ("ihl", c_ubyte, 4),
         ("version", c_ubyte, 4),
         ("tos", c_ubyte),
@@ -30,8 +30,10 @@ class IP(Structure):
         ("ttl", c_ubyte),
         ("protocol_num", c_ubyte),
         ("sum", c_ushort),
-        ("src", c_ulong),
-        ("dst", c_ulong)
+        # ("src", c_ulong),
+        # ("dst", c_ulong)
+        ("src", c_uint32),
+        ("dst", c_uint32)
     ]
 
     def __new__(self, socket_buffer=None):
@@ -43,6 +45,8 @@ class IP(Structure):
         self.protocol_map = {1:"ICMP", 6:"TCP", 17:"UDP"}
 
         # human readable IP addresses
+        # self.src_address = socket.inet_ntoa(struct.pack("<L",self.src))
+        # self.dst_address = socket.inet_ntoa(struct.pack("<L",self.dst))
         self.src_address = socket.inet_ntoa(struct.pack("<L",self.src))
         self.dst_address = socket.inet_ntoa(struct.pack("<L",self.dst))
 
@@ -66,24 +70,21 @@ sniffer.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)
 if os.name == "nt":
     sniffer.ioctl(socket.SIO_RCVALL, socket.RCVALL_ON)
 
-
 try:
     while True:
 
         # read in a packet
-        raw_buffer = sniffer.recvfrom(65565)[0]
+        # raw_buffer = sniffer.recvfrom(65565)[0]
+        raw_buffer = sniffer.recvfrom(65535)[0]
 
         # create an IP header from the first 20 bytes of the buffer
         ip_header = IP(raw_buffer[0:20])
 
         # print out the protocol that was detected and the hosts
-        print("Protocol: %s %s -> %s") % (ip_header.protocol,
-                ip_header.src_address,
-                ip_header.dst_address)
+        print("Protocol: %s %s -> %s" % (ip_header.protocol, ip_header.src_address, ip_header.dst_address))
 
 # handle CTRL-C
 except KeyboardInterrupt:
-
     # if we're using Windows, turn off promiscuous mode
     if os.name == "nt":
         sniffer.ioctl(socket.SIO_RCVALL, socket.RCVALL_OFF)
