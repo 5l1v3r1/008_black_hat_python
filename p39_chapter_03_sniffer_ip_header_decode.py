@@ -16,7 +16,7 @@ import struct
 from ctypes import *
 
 # host to listen on
-host = "192.168.1.104"
+host = "192.168.1.140"
 
 # our IP header
 class IP(Structure):
@@ -45,8 +45,6 @@ class IP(Structure):
         self.protocol_map = {1:"ICMP", 6:"TCP", 17:"UDP"}
 
         # human readable IP addresses
-        # self.src_address = socket.inet_ntoa(struct.pack("<L",self.src))
-        # self.dst_address = socket.inet_ntoa(struct.pack("<L",self.dst))
         self.src_address = socket.inet_ntoa(struct.pack("<L",self.src))
         self.dst_address = socket.inet_ntoa(struct.pack("<L",self.dst))
 
@@ -74,8 +72,7 @@ try:
     while True:
 
         # read in a packet
-        # raw_buffer = sniffer.recvfrom(65565)[0]
-        raw_buffer = sniffer.recvfrom(65535)[0]
+        raw_buffer = sniffer.recvfrom(65565)[0]
 
         # create an IP header from the first 20 bytes of the buffer
         ip_header = IP(raw_buffer[0:20])
